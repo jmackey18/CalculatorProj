@@ -6,6 +6,7 @@ Calculator::Calculator(QWidget *parent)
     , ui(new Ui::Calculator)
 {
     ui->setupUi(this);
+    ui->statusbar->showMessage("            NOTE: Calculator restricted to inputs of 5 digits. Inaccurate results after 5 digits.");
 }
 
 Calculator::~Calculator()
@@ -13,23 +14,28 @@ Calculator::~Calculator()
     delete ui;
 }
 
-/*TODO (not in orderly fashion):
+/*
+ * TODO (not in orderly fashion):
+ * Updated - 10:03 PM @ 02/12/24
  *
- * Updated - 2:20 PM @ 02/08/24
+ * - Edit UI to where operation buttons will become different color when pressed
+ * - Improve UI display
  *
- * 1 - Fix the Ans button bug (unable to grab the last answer, probably because of firstExp-secondExp conversion (or lack thereof)
- * 2 - Fix the decimal issue (only grabbing integer version of expressions, may have to make whole algorithm double-based)
- * 3 - Edit UI (and functions) to where input can only be less than or equal to length of 5
- * 4 - Make a header and/or status bar displaying an input constraint warning
- * 5 - Edit UI to where operation buttons will become different color when pressed
- * 6 - Improve UI display
- * 7 - Change name of window (and adjust program as needed)
- * 8 - If confident, try to add more operations in UI and program
+ *
+ * - If confident, try to add more operations in UI and program
+ *
+*/
+
+/*
+ * Current objective:
+ * As of: 10:15 PM @ 02/12/24
+ *
+ * - Fix the integer/decimal issue (only grabbing integer version of expressions, may have to make whole algorithm double-based)
  *
 */
 
 QString result;
-auto firstExp = 0, secondExp = 0, powerBase = 0;
+auto firstExp = 0, secondExp = 0, powerBase = 0, lastAns = 0;
 bool add = false, subtract = false, multiply = false, divide = false, power = false;
 
 void Calculator::on_nineBtn_clicked()
@@ -92,11 +98,13 @@ void Calculator::numberOperation(int number)
     ui -> clearBtn -> setText("Clear");
     result = ui -> resultLabel -> text();
 
-    if(!result.contains('.')) {
-        secondExp = (secondExp*10) + number;
-        ui -> resultLabel -> setText(QString::number(secondExp));
-    } else {
-        ui -> resultLabel -> setText(result + QString::number(number));
+    if(result.length() < 5) {
+        if(!result.contains('.')) {
+            secondExp = (secondExp*10) + number;
+            ui -> resultLabel -> setText(QString::number(secondExp));
+        } else {
+            ui -> resultLabel -> setText(result + QString::number(number));
+        }
     }
 }
 
@@ -105,8 +113,10 @@ void Calculator::on_decimalBtn_clicked()
     ui -> clearBtn -> setText("Clear");
 
     result = ui -> resultLabel -> text();
-    if(!result.contains('.')) {
-        ui -> resultLabel -> setText(result + QChar('.'));
+    if(result.length() < 5) {
+        if(!result.contains('.')) {
+            ui -> resultLabel -> setText(result + QChar('.'));
+        }
     }
 }
 
@@ -114,13 +124,18 @@ void Calculator::on_lastAnsBtn_clicked()
 {
     ui -> clearBtn -> setText("Clear");
 
-    ui -> resultLabel -> setText(QString::number(firstExp));
+    secondExp = lastAns;
+    ui -> resultLabel -> setText(QString::number(secondExp));
 }
 
 void Calculator::actualOperation()
 {
     if(power) {
-        secondExp = pow(powerBase, secondExp);
+        int i = 1;
+        while (i < secondExp) {
+            firstExp *= powerBase;
+            i++;
+        }
     }
 
     if(add) {
@@ -153,6 +168,7 @@ void Calculator::actualOperation()
 void Calculator::on_equalBtn_clicked()
 {
     Calculator::actualOperation();
+    lastAns = firstExp;
 }
 
 void Calculator::on_clearBtn_clicked()
@@ -160,7 +176,7 @@ void Calculator::on_clearBtn_clicked()
     ui -> resultLabel -> setText(QString::number(0));
 
     if(ui -> clearBtn -> text() == "AC") {
-        firstExp = secondExp = 0;
+        firstExp = secondExp = lastAns = 0;
         add = subtract = multiply = divide = power = false;
 
         ui -> clearBtn -> setText("Clear");
@@ -210,6 +226,7 @@ void Calculator::on_divideBtn_clicked()
 
 void Calculator::on_powerBtn_clicked()
 {
-    powerBase = secondExp;
+    Calculator::actualOperation();
+    powerBase = firstExp;
     power = true;
 }
