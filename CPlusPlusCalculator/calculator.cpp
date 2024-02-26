@@ -1,5 +1,6 @@
 #include "calculator.h"
 #include "ui_calculator.h"
+#include <QObject>
 
 Calculator::Calculator(QWidget *parent)
     : QMainWindow(parent)
@@ -18,8 +19,6 @@ Calculator::~Calculator()
  * TODO (not in orderly fashion):
  * Updated - 10:03 PM @ 02/12/24
  *
- * - Edit UI to where operation buttons will become different color when pressed
- * - Improve UI display
  *
  *
  * - If confident, try to add more operations in UI and program
@@ -28,18 +27,18 @@ Calculator::~Calculator()
 
 /*
  * Current objective:
- * As of: 2:45 PM @ 02/14/24
+ * As of: 4:15 PM @ 02/26/24
  *
- * - Fix the integer/decimal issue (only grabbing integer version of expressions, may have to make whole algorithm double-based)
- *      > Almost fixed; adjust the delete button to properly set secondExp and resultLabel as such
+ * - Adjust decimalButton to where button will be hidden when doing an operation
  *
 */
 
 /*
  * Completed in commit session:
- * As of: 2:45 PM @ 02/14/24
+ * As of: 4:15 PM @ 02/26/24
  *
- *
+ * - Edit UI to where operation buttons will become different color when pressed
+ * - Improve UI display
  *
 */
 
@@ -47,6 +46,13 @@ QString result;
 double firstExp = 0.0, secondExp = 0.0, powerBase = 0.0, lastAns = 0.0;
 bool add = false, subtract = false, multiply = false, divide = false, power = false;
 bool secondResponse = false;
+
+QString pressedStyleSheet = "QPushButton{ background-color: white; color: orange }",
+        currentStyleSheet = "QPushButton{ background-color: orange; } QPushButton:hover{ background-color: #d3d3d3; }",
+        acStyleSheet = "QPushButton{ background-color: white; color: blue; } QPushButton:hover{ color: #d3d3d3 }",
+        clearStyleSheet = "QPushButton{ background-color: blue; } QPushButton:hover{ background-color: #aed8e6; }";
+
+
 
 void Calculator::on_nineBtn_clicked()
 {
@@ -96,7 +102,7 @@ void Calculator::on_oneBtn_clicked()
 void Calculator::on_zeroBtn_clicked()
 {
     result = ui -> resultLabel -> text();
-    if(result.toDouble() != 0.0 || result.contains('.')) {
+    if(!secondResponse || result.toDouble() != 0.0 || result.contains('.')) {
 
         ui -> clearBtn -> setText("Clear");
         result += QString::number(0);
@@ -109,6 +115,8 @@ void Calculator::on_zeroBtn_clicked()
 void Calculator::numberOperation(int number)
 {
     ui -> clearBtn -> setText("Clear");
+    ui -> clearBtn -> setStyleSheet(clearStyleSheet);
+
     result = ui -> resultLabel -> text();
 
     if(secondResponse || result.toDouble() - lastAns == 0.0) {
@@ -156,28 +164,35 @@ void Calculator::on_lastAnsBtn_clicked()
 
 void Calculator::actualOperation()
 {
+
     if(power) {
         int i = 1;
         while (i < secondExp) {
             firstExp *= powerBase;
             i++;
         }
+
+        ui->powerBtn->setStyleSheet(currentStyleSheet);
     }
 
     if(add) {
         firstExp += secondExp;
+        ui->plusBtn->setStyleSheet(currentStyleSheet);
     }
 
     if(subtract) {
         firstExp -= secondExp;
+        ui->subtractBtn->setStyleSheet(currentStyleSheet);
     }
 
     if(multiply) {
         firstExp *= secondExp;
+        ui->multBtn->setStyleSheet(currentStyleSheet);
     }
 
     if(divide) {
         firstExp /= secondExp;
+        ui->divideBtn->setStyleSheet(currentStyleSheet);
     }
 
     if(!add && !subtract && !multiply && !divide && !power) {
@@ -208,9 +223,11 @@ void Calculator::on_clearBtn_clicked()
         add = subtract = multiply = divide = power = secondResponse = false;
 
         ui -> clearBtn -> setText("Clear");
+        ui -> clearBtn -> setStyleSheet(clearStyleSheet);
     } else {
         secondExp = 0;
         ui -> clearBtn -> setText("AC");
+        ui -> clearBtn -> setStyleSheet(acStyleSheet);
     }
 }
 
@@ -232,24 +249,33 @@ void Calculator::on_plusBtn_clicked()
 {
     Calculator::actualOperation();
     add = true;
+
+    ui -> plusBtn -> setStyleSheet(pressedStyleSheet);
+
 }
 
 void Calculator::on_subtractBtn_clicked()
 {
     Calculator::actualOperation();
     subtract = true;
+
+    ui -> subtractBtn -> setStyleSheet(pressedStyleSheet);
 }
 
 void Calculator::on_multBtn_clicked()
 {
     Calculator::actualOperation();
     multiply = true;
+
+    ui -> multBtn -> setStyleSheet(pressedStyleSheet);
 }
 
 void Calculator::on_divideBtn_clicked()
 {
     Calculator::actualOperation();
     divide = true;
+
+    ui -> divideBtn -> setStyleSheet(pressedStyleSheet);
 }
 
 void Calculator::on_powerBtn_clicked()
@@ -257,4 +283,6 @@ void Calculator::on_powerBtn_clicked()
     Calculator::actualOperation();
     powerBase = firstExp;
     power = true;
+
+    ui -> powerBtn -> setStyleSheet(pressedStyleSheet);
 }

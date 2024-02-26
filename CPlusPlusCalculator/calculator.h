@@ -18,6 +18,7 @@ public:
     ~Calculator();
 
 private slots:
+
     void on_nineBtn_clicked();
 
     void on_eightBtn_clicked();
@@ -58,11 +59,14 @@ private slots:
 
     void on_powerBtn_clicked();
 
+
+
+private:
+
     void numberOperation(int number);
 
     void actualOperation();
 
-private:
     Ui::Calculator *ui;
 };
 #endif // CALCULATOR_H
