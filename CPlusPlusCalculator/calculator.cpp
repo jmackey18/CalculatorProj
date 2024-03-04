@@ -17,9 +17,12 @@ Calculator::~Calculator()
 
 /*
  * TODO (not in orderly fashion):
- * Updated - 10:03 PM @ 02/12/24
+ * Updated - 1:28 PM @ 03/03/24
  *
- *
+ * - Try to add a desktop picture/logo
+ * - Release application to macOS users
+ * - (try to) Release application to Windows users
+ * - Increase digit restrictions (starting from 7)
  *
  * - If confident, try to add more operations in UI and program
  *
@@ -27,18 +30,20 @@ Calculator::~Calculator()
 
 /*
  * Current objective:
- * As of: 4:15 PM @ 02/26/24
+ * As of: 1:28 PM @ 02/03/24
  *
- * - Adjust decimalButton to where button will be hidden when doing an operation
+ * - Add comments for functions for readability
  *
 */
 
 /*
  * Completed in commit session:
- * As of: 4:15 PM @ 02/26/24
+ * Starting at: 1:40 PM @ 02/28/24
  *
- * - Edit UI to where operation buttons will become different color when pressed
- * - Improve UI display
+ * - Adjust decimalButton to where button will be hidden when doing an operation
+ * - Adjust zero button where, after inputting operation button, pressing zero will make display only show 0
+ *      > Program somehow adds 0 to first number after operation button pressed
+ * - Adjust operation buttons where primary style sheet reappars when inputting second number
  *
 */
 
@@ -101,47 +106,13 @@ void Calculator::on_oneBtn_clicked()
 
 void Calculator::on_zeroBtn_clicked()
 {
-    result = ui -> resultLabel -> text();
-    if(!secondResponse || result.toDouble() != 0.0 || result.contains('.')) {
-
-        ui -> clearBtn -> setText("Clear");
-        result += QString::number(0);
-        ui -> resultLabel -> setText(result);
-
-        secondExp = result.toDouble();
-    }
-}
-
-void Calculator::numberOperation(int number)
-{
-    ui -> clearBtn -> setText("Clear");
-    ui -> clearBtn -> setStyleSheet(clearStyleSheet);
-
-    result = ui -> resultLabel -> text();
-
-    if(secondResponse || result.toDouble() - lastAns == 0.0) {
-        result = "0";
-        secondResponse = false;
-    }
-
-    if((result.contains('.') && result.length() < 6) || result.length() < 5) {
-        if(result != "0") {
-            result += QString::number(number);
-            ui -> resultLabel -> setText(result);
-
-        } else {
-            result = QString::number(number);
-            ui -> resultLabel -> setText(result);
-        }
-
-    secondExp = result.toDouble();
-    }
-
+    numberOperation(0);
 }
 
 void Calculator::on_decimalBtn_clicked()
 {
     ui -> clearBtn -> setText("Clear");
+    ui -> decimalBtn -> hide();
     result = ui -> resultLabel -> text();
 
     if(secondResponse) {
@@ -150,7 +121,7 @@ void Calculator::on_decimalBtn_clicked()
     }
 
     if(result.length() < 5 && !result.contains('.')) {
-         ui -> resultLabel -> setText(result + QChar('.'));
+        ui -> resultLabel -> setText(result + QChar('.'));
     }
 }
 
@@ -160,51 +131,6 @@ void Calculator::on_lastAnsBtn_clicked()
 
     secondExp = lastAns;
     ui -> resultLabel -> setText(QString::number(secondExp));
-}
-
-void Calculator::actualOperation()
-{
-
-    if(power) {
-        int i = 1;
-        while (i < secondExp) {
-            firstExp *= powerBase;
-            i++;
-        }
-
-        ui->powerBtn->setStyleSheet(currentStyleSheet);
-    }
-
-    if(add) {
-        firstExp += secondExp;
-        ui->plusBtn->setStyleSheet(currentStyleSheet);
-    }
-
-    if(subtract) {
-        firstExp -= secondExp;
-        ui->subtractBtn->setStyleSheet(currentStyleSheet);
-    }
-
-    if(multiply) {
-        firstExp *= secondExp;
-        ui->multBtn->setStyleSheet(currentStyleSheet);
-    }
-
-    if(divide) {
-        firstExp /= secondExp;
-        ui->divideBtn->setStyleSheet(currentStyleSheet);
-    }
-
-    if(!add && !subtract && !multiply && !divide && !power) {
-        if(secondExp != 0.0) {
-            firstExp = secondExp;
-        }
-    }
-
-    secondExp = 0.0;
-    ui -> resultLabel -> setText(QString::number(firstExp));
-    add = subtract = multiply = divide = power = false;
-    secondResponse = true;
 }
 
 void Calculator::on_equalBtn_clicked()
@@ -228,6 +154,12 @@ void Calculator::on_clearBtn_clicked()
         secondExp = 0;
         ui -> clearBtn -> setText("AC");
         ui -> clearBtn -> setStyleSheet(acStyleSheet);
+
+        (add) ? ui->plusBtn->setStyleSheet(pressedStyleSheet) : void();
+        (subtract) ? ui->subtractBtn->setStyleSheet(pressedStyleSheet) : void();
+        (multiply) ? ui->multBtn->setStyleSheet(pressedStyleSheet) : void();
+        (divide) ? ui->divideBtn->setStyleSheet(pressedStyleSheet) : void();
+        (power) ? ui->powerBtn->setStyleSheet(pressedStyleSheet) : void();
     }
 }
 
@@ -285,4 +217,85 @@ void Calculator::on_powerBtn_clicked()
     power = true;
 
     ui -> powerBtn -> setStyleSheet(pressedStyleSheet);
+}
+
+void Calculator::numberOperation(int number)
+{
+    ui -> clearBtn -> setText("Clear");
+    ui -> clearBtn -> setStyleSheet(clearStyleSheet);
+
+    result = ui -> resultLabel -> text();
+
+    if(result != "0." && (secondResponse || result.toDouble() - lastAns == 0.0)) {
+        result = "0";
+        secondResponse = false;
+
+        (add) ? ui->plusBtn->setStyleSheet(currentStyleSheet) : void();
+        (subtract) ? ui->subtractBtn->setStyleSheet(currentStyleSheet) : void();
+        (multiply) ? ui->multBtn->setStyleSheet(currentStyleSheet) : void();
+        (divide) ? ui->divideBtn->setStyleSheet(currentStyleSheet) : void();
+        (power) ? ui->powerBtn->setStyleSheet(currentStyleSheet) : void();
+    }
+
+    if((result.contains('.') && result.length() < 6) || result.length() < 5) {
+        if(result != "0") {
+            result += QString::number(number);
+            ui -> resultLabel -> setText(result);
+
+        } else {
+            result = QString::number(number);
+            ui -> resultLabel -> setText(result);
+        }
+
+    secondExp = result.toDouble();
+    }
+
+}
+
+void Calculator::actualOperation()
+{
+
+    if(power) {
+        int i = 1;
+        while (i < secondExp) {
+            firstExp *= powerBase;
+            i++;
+        }
+
+        ui->powerBtn->setStyleSheet(currentStyleSheet);
+    }
+
+    if(add) {
+        firstExp += secondExp;
+        ui->plusBtn->setStyleSheet(currentStyleSheet);
+    }
+
+    if(subtract) {
+        firstExp -= secondExp;
+        ui->subtractBtn->setStyleSheet(currentStyleSheet);
+    }
+
+    if(multiply) {
+        firstExp *= secondExp;
+        ui->multBtn->setStyleSheet(currentStyleSheet);
+    }
+
+    if(divide) {
+        firstExp /= secondExp;
+        ui->divideBtn->setStyleSheet(currentStyleSheet);
+    }
+
+    if(!add && !subtract && !multiply && !divide && !power) {
+        if(secondExp != 0.0) {
+            firstExp = secondExp;
+        }
+    }
+
+    secondExp = 0.0;
+
+    ui -> resultLabel -> setText(QString::number(firstExp));
+    ui -> decimalBtn -> show();
+
+    add = subtract = multiply = divide = power = false;
+    secondResponse = true;
 }
